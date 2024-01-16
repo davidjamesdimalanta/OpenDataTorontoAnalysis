@@ -1,0 +1,133 @@
+---
+title: "Arrested and Charged Persons Analysis"
+author: "David James"
+format: html
+bibliography: references.bib
+editor: visual
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+```{r}
+#| echo: false
+library(ggplot2)
+library(tidyverse)
+library(opendatatoronto)
+library(readr)
+Arrested_and_Charged_Persons <- read_csv("/Users/daviddimalanta/Desktop/BI/INF312/Arrested_and_Charged_Persons.csv")
+```
+
+# Introduction
+
+The city of Toronto, vibrant and bustling with activity, faces the same challenges as any major metropolis when it comes to crime. The year 2019 was no exception, with law enforcement agencies diligently recording incidents and making arrests across a spectrum of criminal activities. The data at hand offers a glimpse into the patterns of these arrests, revealing insights into the prevalence of different types of crime in various neighborhoods [@OpenDataToronto].
+
+# **Analysis of Neighborhoods**
+
+The first bar graph, labeled as 'Figure 1', displays arrest counts across six distinct neighborhoods: Brookhaven-Amesbury, Dufferin Grove, Harbourfront-CityPlace, Kensington-Chinatown, New Toronto, and Wellington Place. The graph indicates that Harbourfront-CityPlace and Kensington-Chinatown experienced higher arrest counts compared to the other neighborhoods, with the former leading slightly.
+
+Upon dissecting the tibble data found in 'Figure 2', we observe the breakdown of these arrests into categories. Kensington-Chinatown, for instance, shows a significant number of arrests related to the Controlled Drugs and Substances Act. This might suggest a focus on drug-related enforcement in this area or a higher incidence of drug trafficking and use.
+
+In contrast, Harbourfront-CityPlace exhibits a high number of Crimes Against Property. This could be due to the dense population and the concentration of commercial establishments, making it a hotspot for such offenses.
+
+New Toronto and Wellington Place, while having a lower overall arrest count, display a concerning number of Crimes Against the Person. These figures call for attention to violent crime in these areas, which impacts community safety and well-being.
+
+# Yearly Trends
+
+'Figure 3' showcases the trend in overall arrest counts from 2014 to 2022. Despite fluctuations, there is a noticeable decrease in arrests after 2019. This could be attributed to a variety of factors, such as policy changes, community policing efforts, or even external events impacting crime rates and law enforcement activities.
+
+# Conclusion
+
+The data from 2019 offers a snapshot of the complex landscape of crime and law enforcement in Toronto. While certain areas grapple with drug-related issues, others are challenged by property and violent crimes. The downward trend in arrest counts post-2019 opens avenues for further investigation into the effectiveness of crime prevention strategies or shifts in societal behavior. Overall, the numbers tell a story of a city that is actively engaging with its crime-related issues,
+
+addressing them through various measures, and potentially seeing the impact of these efforts over time.
+
+## Recommendations and Future Research
+
+The differences in arrest counts across neighborhoods and crime categories highlight the need for tailored approaches to law enforcement and community safety initiatives. It is recommended that:
+
+-   Law enforcement agencies consider the context of each neighborhood, focusing on prevalent crime types and addressing root causes.
+-   Community-based programs that aim to reduce crimes, particularly violent and property crimes, should be supported and expanded.
+-   Further research should be conducted to understand the factors contributing to the decrease in overall arrest counts post-2019, including the impact of societal changes or policing strategies.
+
+This analysis emphasizes the importance of localized and data-driven approaches to law enforcement and crime prevention. With a continued commitment to understanding the intricacies of crime patterns, Toronto can strive to enhance safety and security for all its residents.
+
+\newpage
+
+\appendix
+
+# Appendix {.unnumbered}
+
+###Figure 1
+
+```{r}
+#| echo: false
+Arrested_and_Charged_Persons |>
+  filter(ARREST_YEAR == 2019,
+         NEIGHBOURHOOD_158 %in% c(
+           "Dufferin Grove (83)", 
+           "Brookhaven-Amesbury (30)",
+           "Harbourfront-CityPlace (165)",
+           "New Toronto (18)",
+           "Kensington-Chinatown (78)",
+           "Wellington Place (164)")) |>
+  group_by(NEIGHBOURHOOD_158) |>
+  summarise(ARREST_COUNT = sum(ARREST_COUNT, na.rm = TRUE)) |>
+  ggplot(mapping = aes(x = NEIGHBOURHOOD_158, y = ARREST_COUNT)) +
+  geom_bar(stat = "identity") +
+  labs(title="Figure 1", x = "Neighbourhood", y = "Arrest Count") +
+  scale_x_discrete(labels = c("Dufferin Grove (83)" = "Dufferin",
+                              "Brookhaven-Amesbury (30)" = "Brookhaven",
+                              "Harbourfront-CityPlace (165)" = "Harbourfront",
+                              "New Toronto (18)" = "New Toronto",
+                              "Kensington-Chinatown (78)" = "Chinatown",
+                              "Wellington Place (164)" = "Wellington Place"))
+```
+
+###Figure 2
+
+```{r}
+#| echo: false
+
+long_format_data <- Arrested_and_Charged_Persons %>%
+  filter(ARREST_YEAR == 2019,
+         NEIGHBOURHOOD_158 %in% c(
+           "Dufferin Grove (83)", 
+           "Brookhaven-Amesbury (30)",
+           "Harbourfront-CityPlace (165)",
+           "New Toronto (18)",
+           "Kensington-Chinatown (78)",
+           "Wellington Place (164)"),
+         CATEGORY %in% c("Other Criminal Code Violations", 
+                         "Crimes Against the Person",
+                         "Controlled Drugs and Substances Act",
+                         "Crimes Against Property")) %>%
+  count(NEIGHBOURHOOD_158, CATEGORY)
+
+ggplot(long_format_data, aes(x = NEIGHBOURHOOD_158, y = n, fill = CATEGORY)) +
+  geom_col() +
+  labs(title = "Crime Counts by Neighbourhood and Category in 2019",
+       x = "Neighbourhood", 
+       y = "Count") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+###Figure 3
+
+```{r}
+#| echo: false
+Arrested_and_Charged_Persons <- Arrested_and_Charged_Persons |>
+  mutate(ARREST_YEAR = factor(ARREST_YEAR, levels = as.character(2014:2022)))
+
+consolidated_counts <- Arrested_and_Charged_Persons |>
+  group_by(ARREST_YEAR) |>
+  summarise(ARREST_COUNT = sum(ARREST_COUNT, na.rm = TRUE))
+
+ggplot(consolidated_counts, aes(x = ARREST_YEAR, y = ARREST_COUNT)) +
+geom_bar(stat = "identity") +
+scale_x_discrete(labels = as.character(2014:2022)) +
+labs(title="Figure 3", x = "Year", y = "Arrest Count")
+```
+
+\newpage
